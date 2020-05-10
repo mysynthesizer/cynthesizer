@@ -21,8 +21,6 @@
 #include "digIndicator.h"
 #include "digIndicatorValue.h"
 
-#include "mysettings.h"
-
 int counter = 0;
 int demo[] = {50,-1,-1,-1,53,-1,-1,50,-1,50,55,-1,50,-1,48,-1,50,-1,-1,-1,57,-1,-1,50,-1,50,58,-1,57,-1,53,-1,50,-1,57,-1,62,-1,50,48,-1,48,45,-1,52,-1,50};
 
