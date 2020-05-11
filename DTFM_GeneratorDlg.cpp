@@ -126,16 +126,20 @@ int IdMidiOpen=-1;
 int 
 	SAMPLE_RATE=44100;
 
+
+double ff = 5;
+
 double myMin = -0.7;
 double myMax = 0.7;
 
 double rezMin = 0.1;
-double rezMax = 8;
+double rezMax = 9;
 
-double filterSpeed = 20000;
+double deTune = 1.005;
+
+double filterSpeed = 50000;
 //double filterSpeed = 1000;
 
-double deTune = 1.007;
 
 struct KEY
 {
@@ -148,7 +152,6 @@ struct KEY
 	double A,D,S,R;	//блок констант ADSR (Attack-Decay-Sustain-Release)
 	double A_add;	//скорость увеличения A (атака)
 
-//	double sawSource;
 	double sawSource1;
 	double sawSource2;
 	
@@ -163,7 +166,8 @@ struct KEY
 	double ss1;
 	double ss2;
 	double ss3;
-	
+
+
 	KEY() { press=0; 
 	decrement=0; Ampl=0; t=0; A=D=S=R=0; A_add=0;midi_key_press=0; 
 	sawSource1=0;sawSource2=0;
@@ -469,38 +473,44 @@ double Piano(int keyN,double Ampl, double freq, double t, double phase, int & fl
 		
 			Keys[keyN].sawSource1 += freq * 0.000032 * deTune;
 			Keys[keyN].sawSource2 += freq * 0.000032 / deTune;
+
+			//double sawSource;// = floor(sin(freq * t) + 0.1);
 			
 			if(Keys[keyN].sawSource1 >= myMax) Keys[keyN].sawSource1 = myMin;
 			if(Keys[keyN].sawSource2 >= myMax) Keys[keyN].sawSource2 = myMin;
 			
 			double sawSource = Keys[keyN].sawSource1 + Keys[keyN].sawSource2;
+			
+			//filter1 = sawSource;
 
 			Keys[keyN].fRez1 -= (Keys[keyN].fRez1 - rezMin) / filterSpeed;
 			Keys[keyN].ss1 += (sawSource - Keys[keyN].filter1) / pow(2, rezMax - Keys[keyN].fRez1 + 4);
 			Keys[keyN].ss1 /= 1.02;
 			Keys[keyN].filter1 += Keys[keyN].ss1;
 			
-			if(t > 2){
 			
-				Keys[keyN].fRez2 -= (Keys[keyN].fRez2 - rezMin) / filterSpeed;
-				Keys[keyN].ss2 += (sawSource - Keys[keyN].filter2) / pow(2, rezMax - Keys[keyN].fRez2 + 4);
-				Keys[keyN].ss2 /= 1.02;
-				Keys[keyN].filter2 += Keys[keyN].ss2;
+			/*
+			if(t > 3){
 			
-			}
-			
-			if(t > 4){
-			
-				Keys[keyN].fRez3 -= (Keys[keyN].fRez3 - rezMin) / filterSpeed;
-				Keys[keyN].ss3 += (sawSource - Keys[keyN].filter3) / pow(2, rezMax - Keys[keyN].fRez3 + 4);
-				Keys[keyN].ss3 /= 1.02;
-				Keys[keyN].filter3 += Keys[keyN].ss3;
+				fRez2 -= (fRez2 - rezMin) / filterSpeed;
+				ss2 += (sawSource - filter2) / pow(2, rezMax - fRez2 + 4);
+				ss2 /= 1.02;
+				filter2 += ss2;
 			
 			}
-						
+			
+			if(t > 6){
+			
+				fRez3 -= (fRez3 - rezMin) / filterSpeed;
+				ss3 += (sawSource - filter3) / pow(2, rezMax - fRez3 + 4);
+				ss3 /= 1.02;
+				filter3 += ss3;
+			
+			}*/
+			
 			k += Keys[keyN].filter1; // базовый звук
-			k += Keys[keyN].filter2 * 0.5; // первое повторение эхо
-			k += Keys[keyN].filter3 * 0.25; // второе повторение эхо
+			//k += filter2 * 0.5; // первое повторение эхо
+			//k += filter3 * 0.25; // второе повторение эхо
 			
 			k *= sl1 / 100.0;
 		
@@ -1244,7 +1254,7 @@ void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent)
 		return;
 		
 	}
-	
+
 	GetData;
 
 	if (nIDEvent==1)
@@ -1557,6 +1567,7 @@ void CALLBACK MidiInProc(
 //открытие миди-устройства
 void CDTFM_GeneratorDlg::OnButtonMidiOpen() 
 {
+
 	
 	GetData;
 
@@ -1614,7 +1625,6 @@ void CDTFM_GeneratorDlg::OnButtonMidiOpen()
 	SetFocus();
 
 	PutData;
-	
 }
 
 void CDTFM_GeneratorDlg::OnButtonWrite() 
