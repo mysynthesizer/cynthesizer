@@ -1361,7 +1361,12 @@ void FillBuffer(short *plbuf, int size, int samplerate)
 					}
 
 				}
-			}
+			}else{
+				
+				Keys[k].frameCount = 0;
+				Keys[k].pianoamp = 1.0;
+				
+			};
 			
 		}
 		
