@@ -1,9 +1,4 @@
 // DTFM_GeneratorDlg.cpp : implementation file
-// 
-//добавить размер буфера ASIO
-//запись/чтения номера ASIO, перевыбор ASIO через диалоговое окно
-
-
 #include "stdafx.h"
 #include "DTFM_Generator.h"
 #include "DTFM_GeneratorDlg.h"
@@ -21,6 +16,178 @@
 #include "digIndicator.h"
 #include "digIndicatorValue.h"
 
+/////////////////////////////////////////////////////////////////////////////
+// CDTFM_GeneratorDlg dialog
+
+CDTFM_GeneratorDlg::CDTFM_GeneratorDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(CDTFM_GeneratorDlg::IDD, pParent)
+{
+
+	//{{AFX_DATA_INIT(CDTFM_GeneratorDlg)
+	m_edit = _T("");
+	m_midi_open_str = _T("3");
+	m_amplitude = _T("32767");
+	m_edit_freq = 0.0;
+	m_midi_name = _T("");
+	m_slider_decrement_double = 0.0;
+	m_wave_len = 0.0;
+	m_edit_modilation = _T("1");
+	m_asio_device = -1;
+	m_edit_scale = _T("12");
+	m_string_base_a = _T("440");
+	m_modulation_amplitude = _T("10000");
+	m_string_status_text = _T("");
+	m_size_asio_buffer = 0;
+	m_garmonic_5 = _T("1.25992");
+	m_garmonic_6 = _T("1.49830");
+	m_attack = _T("5");
+	m_edit_modulation_wheel = _T("");
+	m_use_velocity = TRUE;
+	m_no_sustain = FALSE;
+	m_piano_mouse_click = TRUE;
+	m_ctrl_key_use = FALSE;
+	m_check_saw3 = TRUE;
+	m_filter_off = TRUE;
+	m_write_rawdata_pcm = FALSE;
+	m_sample_rate = 0;
+	m_rez_min = _T("-0.5");
+	m_rez_max = _T("4");
+	m_check_filter2 = FALSE;
+	m_garmonic_mode = FALSE;
+	m_garmonic_base_freq = _T("50");
+	//}}AFX_DATA_INIT
+	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
+	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+}
+
+
+void CDTFM_GeneratorDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CDTFM_GeneratorDlg)
+	DDX_Control(pDX, IDC_STATIC_CSLIDER10, m_static_slider10);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER9, m_static_slider9);
+	DDX_Control(pDX, IDC_EDIT_GLOBAL_FILTER2, m_global_filter2);
+	DDX_Control(pDX, IDC_EDIT_GLOBAL_SS, m_global_ss2);
+	DDX_Control(pDX, IDC_EDIT_GLOBAL_REZ2, m_global_rez2);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER8, m_static_slider8);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER7, m_static_slider7);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER6, m_static_slider6);
+	DDX_Control(pDX, IDC_EDIT_FILL_BUFFER_TICKCOUNT, m_tick_count_fill_buffer);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER5, m_static_slider5);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER4, m_static_slider4);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER3, m_static_sslider3);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER2, m_static_slider2);
+	DDX_Control(pDX, IDC_STATIC_CSLIDER1, m_static_slider1);
+	DDX_Control(pDX, IDC_LEVEL_CONTROL, m_level_control);
+	DDX_Control(pDX, IDC_EDIT_PIANOROLL, m_pianoroll);
+	DDX_Control(pDX, IDC_SLIDER_TOTAL_VOLUME, m_slider_total_volume);
+	DDX_Control(pDX, IDC_EDIT_BASE_A, m_edit_base_a);
+	DDX_Control(pDX, IDC_EDIT_STATUS_TEXT, m_status_text);
+	DDX_Control(pDX, IDC_AMPLITUDE, m_amplitude_edit);
+	DDX_Control(pDX, IDC_SLIDERM6, m_slm6);
+	DDX_Control(pDX, IDC_SLIDERM5, m_slm5);
+	DDX_Control(pDX, IDC_SLIDER6, m_sl6);
+	DDX_Control(pDX, IDC_SLIDER5, m_sl5);
+	DDX_Control(pDX, IDC_SLIDER_DECREMENT, m_slider_decrement);
+	DDX_Control(pDX, IDC_EDIT_MIDI_NAME2, m_midi_name_ctrl);
+	DDX_Control(pDX, IDC_STOP_PLAY, m_stop_play);
+	DDX_Control(pDX, IDC_BUTTON_PLAY_WRITEN, m_play_writen);
+	DDX_Control(pDX, IDC_BUTTON_WRITE_STOP, m_button_write_stop);
+	DDX_Control(pDX, IDC_BUTTON_WRITE, m_button_write);
+	DDX_Control(pDX, IDC_BUTTON_MIDI_OPEN, m_midi_open);
+	DDX_Control(pDX, IDC_BUTTON_MIDI_CLOSE, m_midi_close);
+	DDX_Control(pDX, IDC_SLIDERM4, m_slm4);
+	DDX_Control(pDX, IDC_SLIDERM3, m_slm3);
+	DDX_Control(pDX, IDC_SLIDERM2, m_slm2);
+	DDX_Control(pDX, IDC_SLIDER4, m_sl4);
+	DDX_Control(pDX, IDC_SLIDER3, m_sl3);
+	DDX_Control(pDX, IDC_SLIDER2, m_sl2);
+	DDX_Control(pDX, IDC_SLIDER1, m_sl1);
+	DDX_Text(pDX, IDC_EDIT1, m_edit);
+	DDX_Text(pDX, IDC_EDIT_MIDI_OPEN, m_midi_open_str);
+	DDX_Text(pDX, IDC_AMPLITUDE, m_amplitude);
+	DDX_Text(pDX, IDC_EDIT_FREQ, m_edit_freq);
+	DDX_Text(pDX, IDC_EDIT_MIDI_NAME2, m_midi_name);
+	DDX_Text(pDX, IDC_EDIT_SLIDER_DECREMENT, m_slider_decrement_double);
+	DDX_Text(pDX, IDC_EDIT_WAVE_LEN, m_wave_len);
+	DDX_Text(pDX, IDC_EDIT_MODULATION, m_edit_modilation);
+	DDX_Text(pDX, IDC_EDIT_ASIO_DEVICE, m_asio_device);
+	DDX_Text(pDX, IDC_EDIT_SCALE, m_edit_scale);
+	DDX_Text(pDX, IDC_EDIT_BASE_A, m_string_base_a);
+	DDX_Text(pDX, IDC_EDIT_MODULATION_FREQ, m_modulation_amplitude);
+	DDX_Text(pDX, IDC_EDIT_STATUS_TEXT, m_string_status_text);
+	DDX_Text(pDX, IDC_EDIT_SIZE_ASIO_BUFFER, m_size_asio_buffer);
+	DDX_Text(pDX, IDC_EDIT_GARMONIC_5, m_garmonic_5);
+	DDX_Text(pDX, IDC_EDIT_GARMONIC_6, m_garmonic_6);
+	DDX_Text(pDX, IDC_EDIT_MODULATION_WHEEL, m_edit_modulation_wheel);
+	DDX_Check(pDX, IDC_CHECK_USE_VELOCITY, m_use_velocity);
+	DDX_Check(pDX, IDC_CHECK_NO_SUSTAIN, m_no_sustain);
+	DDX_Check(pDX, IDC_CHECK_PIANO_MOUSE_CLICK, m_piano_mouse_click);
+	DDX_Check(pDX, IDC_CHECK_CTRL_KEY, m_ctrl_key_use);
+	DDX_Check(pDX, IDC_CHECK_SAW, m_check_saw3);
+	DDX_Check(pDX, IDC_CHECK_FILTER_OFF, m_filter_off);
+	DDX_Check(pDX, IDC_CHECK_WRITE_RAWDATA_PCM, m_write_rawdata_pcm);
+	DDX_Text(pDX, IDC_EDIT_SAMPLE_RATE, m_sample_rate);
+	DDX_Text(pDX, IDC_EDIT_REZ_MIN, m_rez_min);
+	DDX_Text(pDX, IDC_EDIT_REZ_MAX, m_rez_max);
+	DDX_Check(pDX, IDC_CHECK_FILTER2, m_check_filter2);
+	DDX_Check(pDX, IDC_CHECK_GARMONIC_MODE, m_garmonic_mode);
+	DDX_Text(pDX, IDC_EDIT_GARMONIC_BASE_FREQ, m_garmonic_base_freq);
+	//}}AFX_DATA_MAP
+}
+
+BEGIN_MESSAGE_MAP(CDTFM_GeneratorDlg, CDialog)
+	//{{AFX_MSG_MAP(CDTFM_GeneratorDlg)
+	ON_WM_SYSCOMMAND()
+	ON_WM_PAINT()
+	ON_WM_QUERYDRAGICON()
+	ON_WM_CLOSE()
+	ON_WM_CREATE()
+	ON_WM_TIMER()
+	ON_BN_CLICKED(IDC_BUTTON_MIDI_CLOSE, OnButtonMidiClose)
+	ON_BN_CLICKED(IDC_BUTTON_MIDI_OPEN, OnButtonMidiOpen)
+	ON_BN_CLICKED(IDC_BUTTON_WRITE, OnButtonWrite)
+	ON_BN_CLICKED(IDC_BUTTON_WRITE_STOP, OnButtonWriteStop)
+	ON_BN_CLICKED(IDC_BUTTON_PLAY_WRITEN, OnButtonPlayWriten)
+	ON_BN_CLICKED(IDC_BUTTON_RESET, OnButtonReset)
+	ON_WM_MOVE()
+	ON_BN_CLICKED(IDC_STOP_PLAY, OnStopPlay)
+	ON_WM_LBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_EN_SETFOCUS(IDC_EDIT_MODULATION, OnSetfocusEditModulation)
+	ON_EN_KILLFOCUS(IDC_EDIT_STATUS_TEXT, OnKillfocusEditStatusText)
+	ON_EN_KILLFOCUS(IDC_EDIT_MODULATION, OnKillfocusEditModulation)
+	ON_EN_SETFOCUS(IDC_EDIT_SCALE, OnSetfocusEditScale)
+	ON_EN_KILLFOCUS(IDC_EDIT_SCALE, OnKillfocusEditScale)
+	ON_BN_CLICKED(IDC_BUTTON_ASIO_CONTROL_PANEL, OnButtonAsioControlPanel)
+	ON_WM_LBUTTONUP()
+	ON_WM_RBUTTONUP()
+	ON_COMMAND(ID_SETTINGS_SETASIODEVICE, OnSettingsSetasiodevice)
+	ON_COMMAND(ID_FILE_EXIT, OnFileExit)
+	ON_BN_CLICKED(IDC_BUTTON_DEMO, OnButtonDemo)
+	ON_COMMAND(ID_KEYBOARD_KEYS_MENU, OnKeyboardKeysMenu)
+	ON_BN_CLICKED(IDC_BUTTON_RND_GARMONIC, OnButtonRndGarmonic)
+	ON_BN_CLICKED(IDC_BUTTON_PLUS_XSCALE_WAVEGRAPHIC, OnButtonPlusXscaleWavegraphic)
+	ON_BN_CLICKED(IDC_BUTTON_MINUS_XSCALE_WAVEGRAPHIC, OnButtonMinusXscaleWavegraphic)
+	ON_BN_CLICKED(IDC_CHECK_GARMONIC_MODE, OnCheckGarmonicMode)
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CDTFM_GeneratorDlg message handlers
+
+double global_fRez2;
+double global_ss2;
+double global_filter2;
+int GarmonicBaseFreq;
+
+double camerton = 110.0;
+double fadeOut = 1.00004; // От этого зависит время затухания клавиш пианино.
+double piano_detune = 1.005; // Погрешность настройки струн пианино. Для озвучки фильмов Чарли Чаплина лучше ставить побольше.
+
+DWORD FillBufferTickCount=0;
+
 int counter = 0;
 int demo[] = {50,-1,-1,-1,53,-1,-1,50,-1,50,55,-1,50,-1,48,-1,50,-1,-1,-1,57,-1,-1,50,-1,50,58,-1,57,-1,53,-1,50,-1,57,-1,62,-1,50,48,-1,48,45,-1,52,-1,50};
 
@@ -33,11 +200,19 @@ double garmonic_6=0;
 double ADSR_Attack=0;
 
 double globalVolume=0.5;
-//CircleSlider *cSlider1=NULL;
+
 CircleSliderIndicator * cCircleSlider_attack=NULL;
 CircleSliderIndicator * cCircleSlider_modulation=NULL;
+CircleSliderIndicator * cCircleSlider_detune=NULL;
+CircleSliderIndicator * cCircleSlider_filterspeed=NULL;
+CircleSliderIndicator * cCircleSlider_filterspeed2=NULL;
+CircleSliderIndicator * cCircleSlider_6=NULL;
+CircleSliderIndicator * cCircleSlider_7=NULL;
+CircleSliderIndicator * cCircleSlider_sqr=NULL;
 
-//DigIndicatorValue	*dInd1;
+CircleSliderIndicator * cCircleSlider_echo_time=NULL;	//время эха
+CircleSliderIndicator * cCircleSlider_echo_decay=NULL;	//затухание эха
+//CircleSliderIndicator * cCircleSlider_detune=NULL;
 
 int global_asio_index=0;
 
@@ -50,7 +225,6 @@ int NeedUpdateModulation=1;	////***^^^*** реагировать на слайдер модуляции
 double g_modulation_t=0;	//***^^^***
 double g_step_modulation=0;	////***^^^*** скорость модуляции 
 double g_ModulationWheel=0;	//***^^^***
-//int m_edit_modulation_wheel  //***^^^*** эта переменная связана с edit box
 int g_modulation_wheel_2=0;	////***^^^***значения колеса модуляции
 int g_modulation_amplitude_value;//***^^^***
 
@@ -124,27 +298,30 @@ double	AMPLITUDE_DECREMENT;//5/2048.0;
 int IdMidiOpen=-1;
 
 int 
-	SAMPLE_RATE=44100;
+	SAMPLE_RATE=0;
+	//SAMPLE_RATE=44100*2;
+	//SAMPLE_RATE=48000;
+
+//double myMin = -0.7;
+//double myMax = 0.7;
+
+double myMin = -1;
+double myMax = 1;
 
 
-double ff = 5;
+double rezMin = -0.5;
+double rezMax = 4.5;
 
-double myMin = -0.7;
-double myMax = 0.7;
-
-double rezMin = 0.1;
-double rezMax = 9;
-
-double deTune = 1.005;
-
-double filterSpeed = 50000;
+double filterSpeed = 0;//20000*10;
 //double filterSpeed = 1000;
 
+double deTune = 1.000;
 
 struct KEY
 {
 	UINT press;	//клавиша нажата (активна)
 	BYTE midi_key_press;	//была нажата миди клавиша
+	BYTE key_unpress;	//была отпущена клавиша на клавиатуре
 	double decrement;
 	double Ampl;
 
@@ -152,6 +329,7 @@ struct KEY
 	double A,D,S,R;	//блок констант ADSR (Attack-Decay-Sustain-Release)
 	double A_add;	//скорость увеличения A (атака)
 
+//	double sawSource;
 	double sawSource1;
 	double sawSource2;
 	
@@ -166,28 +344,54 @@ struct KEY
 	double ss1;
 	double ss2;
 	double ss3;
-
-
-	KEY() { press=0; 
-	decrement=0; Ampl=0; t=0; A=D=S=R=0; A_add=0;midi_key_press=0; 
-	sawSource1=0;sawSource2=0;
 	
-	filter1=0;
-	filter2=0;
-	filter3=0;
-	fRez1 = rezMax;
-	fRez2 = rezMax;
-	fRez3 = rezMax;
-	ss1=0;
-	ss2=0;
-	ss3=0;
+	double pianoamp;
+	int frameCount;
+	double resonance;
+	double polarity;
+	
+	double pianostr1;
+	double pianostr2;
+	double pianostr3;
+
+	void ResetFilter()
+	{
+		sawSource1=0;
+		sawSource2=0;
+		
+		filter1=0;
+		filter2=0;
+		filter3=0;
+		fRez1 = rezMax;
+		fRez2 = rezMax;
+		fRez3 = rezMax;
+		ss1=0;
+		ss2=0;
+		ss3=0;
+
 	}
 
-} Keys[256];
+	KEY() 
+	{ 
+		press=0; 
+		key_unpress=TRUE;
+
+		decrement=0; Ampl=0; t=0; A=D=S=R=0; A_add=0; pianoamp=1.0; frameCount=0; resonance=1.0; polarity=1.0;
+		
+		pianostr1 = rand() / 16384.0 - 1.0;
+		pianostr2 = rand() / 16384.0 - 1.0;
+		pianostr3 = rand() / 16384.0 - 1.0;
+		
+		midi_key_press=0; 
+
+		ResetFilter();
+	}
+
+} Keys[128];
 
 double Piano(int keyN, double Ampl, double freq, double t, double phase);
 
-KEY KeysOld[256];
+KEY KeysOld[128];
 
 //////////////////////////////////////////////////////
 //параметры отрисовки клавиш пианноролла			//
@@ -291,134 +495,17 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-/////////////////////////////////////////////////////////////////////////////
-// CDTFM_GeneratorDlg dialog
-
-CDTFM_GeneratorDlg::CDTFM_GeneratorDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CDTFM_GeneratorDlg::IDD, pParent)
-{
-
-	//{{AFX_DATA_INIT(CDTFM_GeneratorDlg)
-	m_edit = _T("");
-	m_midi_open_str = _T("3");
-	m_amplitude = _T("32767");
-	m_edit_freq = 0.0;
-	m_midi_name = _T("");
-	m_slider_decrement_double = 0.0;
-	m_wave_len = 0.0;
-	m_edit_modilation = _T("1");
-	m_asio_device = -1;
-	m_edit_scale = _T("12");
-	m_string_base_a = _T("440");
-	m_modulation_amplitude = _T("10000");
-	m_string_status_text = _T("");
-	m_size_asio_buffer = 0;
-	m_garmonic_5 = _T("1.25992");
-	m_garmonic_6 = _T("1.49830");
-	m_attack = _T("5");
-	m_edit_modulation_wheel = _T("");
-	m_use_velocity = FALSE;
-	m_no_sustain = FALSE;
-	m_piano_mouse_click = FALSE;
-	m_ctrl_key_use = FALSE;
-	//}}AFX_DATA_INIT
-	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-}
-
-void CDTFM_GeneratorDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CDTFM_GeneratorDlg)
-	DDX_Control(pDX, IDC_STATIC_CSLIDER2, m_static_slider2);
-	DDX_Control(pDX, IDC_STATIC_CSLIDER1, m_static_slider1);
-	DDX_Control(pDX, IDC_LEVEL_CONTROL, m_level_control);
-	DDX_Control(pDX, IDC_EDIT_PIANOROLL, m_pianoroll);
-	DDX_Control(pDX, IDC_SLIDER_TOTAL_VOLUME, m_slider_total_volume);
-	DDX_Control(pDX, IDC_EDIT_BASE_A, m_edit_base_a);
-	DDX_Control(pDX, IDC_EDIT_STATUS_TEXT, m_status_text);
-	DDX_Control(pDX, IDC_AMPLITUDE, m_amplitude_edit);
-	DDX_Control(pDX, IDC_SLIDERM6, m_slm6);
-	DDX_Control(pDX, IDC_SLIDERM5, m_slm5);
-	DDX_Control(pDX, IDC_SLIDER6, m_sl6);
-	DDX_Control(pDX, IDC_SLIDER5, m_sl5);
-	DDX_Control(pDX, IDC_SLIDER_DECREMENT, m_slider_decrement);
-	DDX_Control(pDX, IDC_EDIT_MIDI_NAME2, m_midi_name_ctrl);
-	DDX_Control(pDX, IDC_STOP_PLAY, m_stop_play);
-	DDX_Control(pDX, IDC_BUTTON_PLAY_WRITEN, m_play_writen);
-	DDX_Control(pDX, IDC_BUTTON_WRITE_STOP, m_button_write_stop);
-	DDX_Control(pDX, IDC_BUTTON_WRITE, m_button_write);
-	DDX_Control(pDX, IDC_BUTTON_MIDI_OPEN, m_midi_open);
-	DDX_Control(pDX, IDC_BUTTON_MIDI_CLOSE, m_midi_close);
-	DDX_Control(pDX, IDC_SLIDERM4, m_slm4);
-	DDX_Control(pDX, IDC_SLIDERM3, m_slm3);
-	DDX_Control(pDX, IDC_SLIDERM2, m_slm2);
-	DDX_Control(pDX, IDC_SLIDER4, m_sl4);
-	DDX_Control(pDX, IDC_SLIDER3, m_sl3);
-	DDX_Control(pDX, IDC_SLIDER2, m_sl2);
-	DDX_Control(pDX, IDC_SLIDER1, m_sl1);
-	DDX_Text(pDX, IDC_EDIT1, m_edit);
-	DDX_Text(pDX, IDC_EDIT_MIDI_OPEN, m_midi_open_str);
-	DDX_Text(pDX, IDC_AMPLITUDE, m_amplitude);
-	DDX_Text(pDX, IDC_EDIT_FREQ, m_edit_freq);
-	DDX_Text(pDX, IDC_EDIT_MIDI_NAME2, m_midi_name);
-	DDX_Text(pDX, IDC_EDIT_SLIDER_DECREMENT, m_slider_decrement_double);
-	DDX_Text(pDX, IDC_EDIT_WAVE_LEN, m_wave_len);
-	DDX_Text(pDX, IDC_EDIT_MODULATION, m_edit_modilation);
-	DDX_Text(pDX, IDC_EDIT_ASIO_DEVICE, m_asio_device);
-	DDX_Text(pDX, IDC_EDIT_SCALE, m_edit_scale);
-	DDX_Text(pDX, IDC_EDIT_BASE_A, m_string_base_a);
-	DDX_Text(pDX, IDC_EDIT_MODULATION_FREQ, m_modulation_amplitude);
-	DDX_Text(pDX, IDC_EDIT_STATUS_TEXT, m_string_status_text);
-	DDX_Text(pDX, IDC_EDIT_SIZE_ASIO_BUFFER, m_size_asio_buffer);
-	DDX_Text(pDX, IDC_EDIT_GARMONIC_5, m_garmonic_5);
-	DDX_Text(pDX, IDC_EDIT_GARMONIC_6, m_garmonic_6);
-	DDX_Text(pDX, IDC_EDIT_MODULATION_WHEEL, m_edit_modulation_wheel);
-	DDX_Check(pDX, IDC_CHECK_USE_VELOCITY, m_use_velocity);
-	DDX_Check(pDX, IDC_CHECK_NO_SUSTAIN, m_no_sustain);
-	DDX_Check(pDX, IDC_CHECK_PIANO_MOUSE_CLICK, m_piano_mouse_click);
-	DDX_Check(pDX, IDC_CHECK_CTRL_KEY, m_ctrl_key_use);
-	//}}AFX_DATA_MAP
-}
-
-BEGIN_MESSAGE_MAP(CDTFM_GeneratorDlg, CDialog)
-	//{{AFX_MSG_MAP(CDTFM_GeneratorDlg)
-	ON_WM_SYSCOMMAND()
-	ON_WM_PAINT()
-	ON_WM_QUERYDRAGICON()
-	ON_WM_CLOSE()
-	ON_WM_CREATE()
-	ON_WM_TIMER()
-	ON_BN_CLICKED(IDC_BUTTON_MIDI_CLOSE, OnButtonMidiClose)
-	ON_BN_CLICKED(IDC_BUTTON_MIDI_OPEN, OnButtonMidiOpen)
-	ON_BN_CLICKED(IDC_BUTTON_WRITE, OnButtonWrite)
-	ON_BN_CLICKED(IDC_BUTTON_WRITE_STOP, OnButtonWriteStop)
-	ON_BN_CLICKED(IDC_BUTTON_PLAY_WRITEN, OnButtonPlayWriten)
-	ON_BN_CLICKED(IDC_BUTTON_RESET, OnButtonReset)
-	ON_WM_MOVE()
-	ON_BN_CLICKED(IDC_STOP_PLAY, OnStopPlay)
-	ON_WM_LBUTTONDOWN()
-	ON_WM_MOUSEMOVE()
-	ON_EN_SETFOCUS(IDC_EDIT_MODULATION, OnSetfocusEditModulation)
-	ON_EN_KILLFOCUS(IDC_EDIT_STATUS_TEXT, OnKillfocusEditStatusText)
-	ON_EN_KILLFOCUS(IDC_EDIT_MODULATION, OnKillfocusEditModulation)
-	ON_EN_SETFOCUS(IDC_EDIT_SCALE, OnSetfocusEditScale)
-	ON_EN_KILLFOCUS(IDC_EDIT_SCALE, OnKillfocusEditScale)
-	ON_BN_CLICKED(IDC_BUTTON_ASIO_CONTROL_PANEL, OnButtonAsioControlPanel)
-	ON_WM_LBUTTONUP()
-	ON_WM_RBUTTONUP()
-	ON_COMMAND(ID_SETTINGS_SETASIODEVICE, OnSettingsSetasiodevice)
-	ON_COMMAND(ID_FILE_EXIT, OnFileExit)
-	//}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-/////////////////////////////////////////////////////////////////////////////
-// CDTFM_GeneratorDlg message handlers
-
-
 int sl1, sl2, sl3, sl4, sl5, sl6;
 int slm2, slm3, slm4, slm5, slm6;
 int slvolume;
+
+
+const garm_c=50;
+double randarray[garm_c];// =    {3, 7, 17, 22, 23, 27, 29, 37, 43, 47}; // якобы случайные числа
+double randarray_amplitude[garm_c];// = { 1, 0.7, 0.5, 0.9, 0.1, 0, 1, 0.9, 0.9, 0.8}; 
+
+//double randarray2[garm_c] =    {1, 3, 7, 17, 22, 23, 27, 29, 37, 43, 47}; // 
+//double randarray_amplitude2[garm_c] = { 1, 0.7, 0.5, 0.9, 0.1, 0, 1, 0.9, 0.9, 0.8}; 
 
 
 //функция Piano используется для генерации звука
@@ -433,19 +520,25 @@ int slvolume;
 //а остальные слайдеры опущены вниз
 double Piano(int keyN,double Ampl, double freq, double t, double phase, int & flag_one, double & freq_actual)
 {
+	double static tmp1,tmp2;
 
 	flag_one=0;
 
+	//if (sl1 && !g_mainwindow->m_check_saw3) {flag_one++;freq_actual=freq;}	//base frequency
 	if (sl1) {flag_one++;freq_actual=freq;}	//base frequency
-	if (sl2) {flag_one++;freq_actual=freq*2;}
-	if (sl3) {flag_one++;freq_actual=freq*3;}
+	//if (sl2) {flag_one++;freq_actual=freq*2;}
+	if (sl2) {flag_one++;freq_actual=freq;}
+	
+	//if (sl3) {flag_one++;freq_actual=freq*3;}
+	if (sl3) {flag_one++;freq_actual=freq;}
+
 	if (sl4) {flag_one++;freq_actual=freq*4;}
 	
 	//if (sl5) {flag_one++;freq_actual=freq*5;}
-	if (sl5) {flag_one++;freq_actual=-1;}
+	if (sl5) {flag_one++;freq_actual=freq*garmonic_5;}
 	
 	//if (sl6) {flag_one++;freq_actual=freq*6;}
-	if (sl6) {flag_one++; freq_actual=-1;}
+	if (sl6) {flag_one++; freq_actual=freq*garmonic_6;}
 
 	if (slm2) {flag_one++;freq_actual=freq/2;}
 	if (slm3) {flag_one++;freq_actual=freq/3;}
@@ -455,12 +548,12 @@ double Piano(int keyN,double Ampl, double freq, double t, double phase, int & fl
 
 	double k=0;	//итоговая вычисленная сумма 
 
-	double limit=20000;	//ограничение частоты
+	double limit=20500;	//ограничение частоты
 
 	//амплитуда сигнала
 	double AMP=Ampl;
 
-	//***^^^*** свяазано с модуляцией
+	//***^^^*** связано с амплитудной модуляцией
 	AMP+=
 		g_modulation_amplitude_value//глубина модуляции
 		*sin(g_modulation_t);
@@ -470,56 +563,220 @@ double Piano(int keyN,double Ampl, double freq, double t, double phase, int & fl
 
 	//если поднят первый слайдер (базовая гармоника)
 	if (sl1) {
-		
-			Keys[keyN].sawSource1 += freq * 0.000032 * deTune;
-			Keys[keyN].sawSource2 += freq * 0.000032 / deTune;
 
-			//double sawSource;// = floor(sin(freq * t) + 0.1);
-			
-			if(Keys[keyN].sawSource1 >= myMax) Keys[keyN].sawSource1 = myMin;
-			if(Keys[keyN].sawSource2 >= myMax) Keys[keyN].sawSource2 = myMin;
-			
-			double sawSource = Keys[keyN].sawSource1 + Keys[keyN].sawSource2;
-			
-			//filter1 = sawSource;
+		if (g_mainwindow->m_check_saw3)
+		{
+			double dt=1 + cCircleSlider_detune->GetValue()/5000.0;
+			//double dt=1 + 1.0/pow(2, cCircleSlider_detune->GetValue()/10.0);
 
-			Keys[keyN].fRez1 -= (Keys[keyN].fRez1 - rezMin) / filterSpeed;
-			Keys[keyN].ss1 += (sawSource - Keys[keyN].filter1) / pow(2, rezMax - Keys[keyN].fRez1 + 4);
-			Keys[keyN].ss1 /= 1.02;
-			Keys[keyN].filter1 += Keys[keyN].ss1;
+
+			double myconst = (myMax - myMin) / SAMPLE_RATE;
+
+			//Keys[keyN].sawSource1 += freq * 0.000032 * dt;
+			//Keys[keyN].sawSource2 += freq * 0.000032 / dt;
 			
+			//Keys[keyN].sawSource1 += freq * myconst * dt;
+			//Keys[keyN].sawSource2 += freq * myconst / dt;
+
+			//int fmodulation_f = 50; // частота частотной модуляции
+			//int fmodulation_d = 50; // глубина частотной модуляции
+
+			double fmodulation_f = cCircleSlider_6->GetValue(); // частота частотной модуляции
+			double fmodulation_d = cCircleSlider_7->GetValue(); // глубина частотной модуляции
+
+			double fmodulation = 1 + (1 - pow(1.001, fmodulation_d)) * sin(t * pow(1.015, fmodulation_f));
+            
+			Keys[keyN].sawSource1 += freq * myconst * dt * fmodulation;
+			Keys[keyN].sawSource2 += freq * myconst / dt * fmodulation;
 			
-			/*
-			if(t > 3){
+			//Keys[keyN].sawSource1 += freq * myconst * dt;
+			//Keys[keyN].sawSource2 += freq * myconst / dt;
+
+			//8jul2020
+			//if(Keys[keyN].sawSource1 >= myMax) Keys[keyN].sawSource1 = myMin - myMax + Keys[keyN].sawSource1;
+			//if(Keys[keyN].sawSource2 >= myMax) Keys[keyN].sawSource2 = myMin - myMax + Keys[keyN].sawSource2;
 			
-				fRez2 -= (fRez2 - rezMin) / filterSpeed;
-				ss2 += (sawSource - filter2) / pow(2, rezMax - fRez2 + 4);
-				ss2 /= 1.02;
-				filter2 += ss2;
-			
+			if(Keys[keyN].sawSource1 >= myMax){
+				tmp1 = Keys[keyN].sawSource1 - myMax;
+				Keys[keyN].sawSource1 = myMin;
 			}
+			if(Keys[keyN].sawSource2 >= myMax){
+				tmp2 = Keys[keyN].sawSource2 - myMax;
+				Keys[keyN].sawSource2 = myMin;
+			}
+
 			
-			if(t > 6){
+			//if(Keys[keyN].sawSource1 >= myMax) Keys[keyN].sawSource1 = myMin;
+			//if(Keys[keyN].sawSource2 >= myMax) Keys[keyN].sawSource2 = myMin;
 			
-				fRez3 -= (fRez3 - rezMin) / filterSpeed;
-				ss3 += (sawSource - filter3) / pow(2, rezMax - fRez3 + 4);
-				ss3 /= 1.02;
-				filter3 += ss3;
+			double sawSource = Keys[keyN].sawSource1 + Keys[keyN].sawSource2+ tmp1 + tmp2;
+
+			if (g_mainwindow->m_filter_off)
+			{
+				Keys[keyN].filter1=sawSource;
+			}
+
+			if (g_mainwindow->m_filter_off == false)
+			{
+				filterSpeed = //500 * (cCircleSlider_filterspeed->GetValue()+1);
+
+				//pow(2, 9 + cCircleSlider_filterspeed -> GetValue() / 15.0);
+				pow(2, 9 + cCircleSlider_filterspeed -> GetValue() / 10.0);
+
+				Keys[keyN].fRez1 -= (Keys[keyN].fRez1 - rezMin) / filterSpeed;
+				//Keys[keyN].ss1 += (sawSource - Keys[keyN].filter1) / pow(2, rezMax - Keys[keyN].fRez1 + 4);
+				Keys[keyN].ss1 += (sawSource - Keys[keyN].filter1) / pow(4, 6 - Keys[keyN].fRez1);
+
+				//Keys[keyN].ss1 /= 1.02;
+				Keys[keyN].ss1 /= 1.01;
+				Keys[keyN].filter1 += Keys[keyN].ss1;
+			}
+				
+						
+			k += Keys[keyN].filter1 * sl1/100.0; // базовый звук
 			
-			}*/
+	
+			//k *= sl1 / 100.0;
+		}
+		else
+		{
+			f=freq; 
 			
-			k += Keys[keyN].filter1; // базовый звук
-			//k += filter2 * 0.5; // первое повторение эхо
-			//k += filter3 * 0.25; // второе повторение эхо
-			
-			k *= sl1 / 100.0;
+			if (f<limit) k+=sl1/100.0*sin(f*t);
+		}
 		
 	}
 
-	//если поднят второй слайдер (вторая гаромника, в 2 раза выше базовой)
-	if (sl2) { f=2*freq; if (f<limit) k+=sl2/100.0*sin(f*t); }
-	if (sl3) { f=3*freq; if (f<limit) k+=sl3/100.0*sin(f*t); }
-	if (sl4) { f=4*freq; if (f<limit) k+=sl4/100.0*sin(f*t); }
+	//если поднят второй слайдер 
+	if (sl2) 
+	{
+		//f=2*freq; 
+		
+		f=freq; 
+		//floor
+		//double val=floor(sin(f*t)+0.1);
+		double val=sin(f*t);
+		double fix=cCircleSlider_sqr->GetValue()/100.0;
+		//double fix=0;
+
+		if (val>=fix) val=1;
+		if (val<-fix) val=-1;
+		
+
+		if (f<limit) k+=sl2/100.0*val; 
+	}
+
+	if (sl3) 
+	{
+		
+		///f=3*freq; 
+		////if (f<limit) k+=sl3/100.0*sin(f*t); 
+
+		bool randgarmony = true; // разрешение выполнять функцию ниже
+		if(randgarmony == true)
+		{
+
+			//double out = 0.4 * sin(freq * t); //base freq
+			double out = 0;
+
+			for(int i = 0; i < garm_c; i ++) 
+			{
+				//out += 0.1/(i+1) * sin(freq * randarray[i] * t);
+				if (randarray[i])
+				{
+					double f=freq * i;
+					if (f<limit)
+					{
+						out += randarray_amplitude[i] * sin(f*t);
+					}
+				}
+			}
+
+			 // дальше уже знакомый код фильтра, только на вход подаём переменную out
+			filterSpeed = pow(2, 9 + cCircleSlider_filterspeed -> GetValue() / 10.0);
+			
+			Keys[keyN].fRez2 -= (Keys[keyN].fRez2 - rezMin) / filterSpeed;
+		
+			/*if ( (Keys[keyN].fRez2-rezMin)<0.5)
+			{
+				Keys[keyN].ResetFilter();
+			}*/
+
+			
+			Keys[keyN].ss2 += (out - Keys[keyN].filter2) / pow(4, 6 - Keys[keyN].fRez2);
+			//Keys[keyN].ss1 /= 1.02;
+			Keys[keyN].ss2 /= 1.01 ;
+			Keys[keyN].filter2 += Keys[keyN].ss2;
+
+			global_fRez2=Keys[keyN].fRez2;
+			global_ss2=Keys[keyN].ss2;
+			global_filter2=Keys[keyN].filter2;
+
+
+			double filterSpeed3 = pow(2, 9 + cCircleSlider_filterspeed2 -> GetValue() / 10.0);
+			
+			Keys[keyN].fRez3 -= (Keys[keyN].fRez3 - rezMin) / filterSpeed3;
+			Keys[keyN].ss3 += (out - Keys[keyN].filter3) / pow(4, 6 - Keys[keyN].fRez3);
+			Keys[keyN].ss3 /= 1.01 ;
+			Keys[keyN].filter3 += Keys[keyN].ss3;
+
+
+			
+			int filter_on=g_mainwindow->m_check_filter2;
+			if (filter_on)
+			{
+				//k += Keys[keyN].filter2 * sl3 * 0.01; // добавляем результат в общий поток
+				k += 0.5*(Keys[keyN].filter2 + Keys[keyN].filter3)* sl3 * 0.01; // добавляем результат в общий поток
+			}
+			else
+			{
+				k += out * sl3 * 0.01;
+			}
+
+		}
+
+	
+	
+	}
+	
+	if (sl4) {
+
+		double str1 = pow(piano_detune, Keys[keyN].pianostr1);
+		double str2 = pow(piano_detune, Keys[keyN].pianostr2);
+		double str3 = pow(piano_detune, Keys[keyN].pianostr3);
+	
+		double freq1 = freq / 70.0;
+		
+        if(sin(Keys[keyN].frameCount / camerton * freq1) * Keys[keyN].polarity < 0){
+		
+			Keys[keyN].polarity = -Keys[keyN].polarity;
+            Keys[keyN].resonance = 1.0;
+			
+        }
+		
+		Keys[keyN].pianoamp /= fadeOut;
+		Keys[keyN].resonance /= 1.01;
+		
+		double fm = 50.0 * sin( Keys[keyN].frameCount / camerton * freq1 * floor(12 / freq1)) * Keys[keyN].resonance;
+		
+		double fm1 = 50.0 * sin( Keys[keyN].frameCount / camerton * freq1 * floor(12 / freq1) * str1) * Keys[keyN].resonance;
+		double fm2 = 50.0 * sin( Keys[keyN].frameCount / camerton * freq1 * floor(12 / freq1) * str2) * Keys[keyN].resonance;
+		double fm3 = 50.0 * sin( Keys[keyN].frameCount / camerton * freq1 * floor(12 / freq1) * str3) * Keys[keyN].resonance;
+		
+		double garmony = (Keys[keyN].frameCount + fm1) / camerton * freq1;
+		double k1 = Keys[keyN].pianoamp * (sin(garmony) + sin(garmony * 2.0));
+		
+		garmony = (Keys[keyN].frameCount + fm2) / camerton * freq1;
+		k1 += Keys[keyN].pianoamp * (sin(garmony) + sin(garmony * 2.0));
+		
+		garmony = (Keys[keyN].frameCount + fm3) / camerton * freq1;
+		k1 += Keys[keyN].pianoamp * (sin(garmony) + sin(garmony * 2.0));
+		
+		k += k1 * sl4 / 100;
+		
+		Keys[keyN].frameCount ++;
+
+	}
 	
 	//if (sl5) { f=5*freq; if (f<limit) k+=sl5/100.0*sin(f*t); }
 	if (sl5) { f=garmonic_5*freq; if (f<limit) k+=sl5/100.0*sin(f*t); }
@@ -554,30 +811,114 @@ BOOL CDTFM_GeneratorDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	
+	srand(GetTickCount());	//init rnd
+
+	for(int i=0; i<garm_c;i++)
+	{
+		CString s;
+		s.Format("Garm%i",i);
+			
+		ini.QueryDoubleValue(randarray[i], s.GetBuffer(0));
+		
+		s.Format("GarmAmpl%i",i);
+		ini.QueryDoubleValue(randarray_amplitude[i], s.GetBuffer(0));//randarray_amplitude2[i];
+	}
+
+
+		
 	menu.LoadMenu(IDR_MENU_MAIN);
 	SetMenu(&menu);
 
 	g_mainwindow=this;
 
+	BaseKeyboard=ini.QueryValue("BaseKeyboard");
+	if (!BaseKeyboard) BaseKeyboard=59;
 
-	RECT rt, rt2;
+	m_check_saw=ini.QueryValue("CheckSaw");
+
+
+	RECT rt, rt2, rt3, rt4, rt5, rt6, rt7,rt8, rt9, rt10;
 	m_static_slider1.GetWindowRect(&rt);
 	m_static_slider2.GetWindowRect(&rt2);
+	m_static_sslider3.GetWindowRect(&rt3);
+	m_static_slider4.GetWindowRect(&rt4);
+	m_static_slider5.GetWindowRect(&rt5);
+	m_static_slider6.GetWindowRect(&rt6);
+	m_static_slider7.GetWindowRect(&rt7);
+	m_static_slider8.GetWindowRect(&rt8);
+	m_static_slider9.GetWindowRect(&rt9);
+	m_static_slider10.GetWindowRect(&rt10);
+	
 	ScreenToClient(&rt);
 	ScreenToClient(&rt2);
+	ScreenToClient(&rt3);
+	ScreenToClient(&rt4);
+	ScreenToClient(&rt5);
+	ScreenToClient(&rt6);
+	ScreenToClient(&rt7);
+	ScreenToClient(&rt8);
+	ScreenToClient(&rt9);
+	ScreenToClient(&rt10);
 
 
 	int x=rt.left,y=rt.top;
 
+	//CircleSliderIndicator * cCircleSlider_echo_time=NULL;	//время эха
+	//CircleSliderIndicator * cCircleSlider_echo_decay=NULL;	//затухание эха
+
+	cCircleSlider_echo_time = new CircleSliderIndicator(rt9.left, rt9.top, CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3,
+											  DigIndicatorValue::signTypeNotShow);
+
+	cCircleSlider_echo_time -> SetValue(ini.QueryValue("EchoTime"));
+
+	cCircleSlider_echo_decay = new CircleSliderIndicator(rt10.left, rt10.top, CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3,
+											  DigIndicatorValue::signTypeNotShow);
+
+	cCircleSlider_echo_decay -> SetValue(ini.QueryValue("EchoDecay"));
+
+
+	cCircleSlider_sqr = new CircleSliderIndicator(rt8.left, rt8.top, CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3,
+											  DigIndicatorValue::signTypeNotShow);
+
+	cCircleSlider_sqr -> SetValue(ini.QueryValue("SqrWaveToSin"));
+
+	cCircleSlider_6= new CircleSliderIndicator(rt6.left, rt6.top, CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3,
+											  DigIndicatorValue::signTypeNotShow);
+
+	cCircleSlider_6	->SetValue(ini.QueryValue("ModulationParam1"));
+
+
+	cCircleSlider_7= new CircleSliderIndicator(rt7.left, rt7.top, CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3,
+											  DigIndicatorValue::signTypeNotShow);
+
+	cCircleSlider_7	->SetValue(ini.QueryValue("ModulationParam2"));
+
+
 	cCircleSlider_attack = new CircleSliderIndicator(x,y, CircleSliderIndicator::typeOfElem4, 0,127, 0, true, 3,
 											  DigIndicatorValue::signTypeNotShow);
 
+	cCircleSlider_attack->SetValue(ini.QueryValue("Attack"));
 	
 	cCircleSlider_modulation = new CircleSliderIndicator(rt2.left,rt2.top, 
 		CircleSliderIndicator::typeOfElem4, 0,127, 0, true, 3, DigIndicatorValue::signTypeNotShow);
 
-	cCircleSlider_modulation->doubleIndFlag=false;
+	cCircleSlider_modulation->SetValue(ini.QueryValue("Modulation"));
+
+	cCircleSlider_detune = new CircleSliderIndicator(rt3.left,rt3.top, 
+		CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3, DigIndicatorValue::signTypeNotShow);
+
+		cCircleSlider_detune->SetValue(ini.QueryValue("Detune"));
+
+	cCircleSlider_filterspeed=new CircleSliderIndicator(rt4.left,rt4.top, 
+		CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3, DigIndicatorValue::signTypeNotShow);;
+
+	cCircleSlider_filterspeed->SetValue(ini.QueryValue("FilterSpeed"));
+
+	cCircleSlider_filterspeed2 = new CircleSliderIndicator(rt5.left,rt5.top, 
+		CircleSliderIndicator::typeOfElem4, 0,100, 0, true, 3, DigIndicatorValue::signTypeNotShow);;
+
+	cCircleSlider_filterspeed2->SetValue(ini.QueryValue("FilterSpeed2"));
+
 	
 	//bool isSmallInd=1;
 	//BYTE c=0xf0;
@@ -588,10 +929,15 @@ BOOL CDTFM_GeneratorDlg::OnInitDialog()
 	char buf_midi[8];
 	itoa(temp,buf_midi,10);
 	m_midi_open_str=buf_midi;
+
+	m_garmonic_5=ini.QueryString("Garmonic5");
+	m_garmonic_6=ini.QueryString("Garmonic6");
 	
 
 	m_asio_device=global_asio_index;
 	m_size_asio_buffer=ASIO_buflen;
+
+	m_sample_rate=SAMPLE_RATE;
 
 	PutData;
 
@@ -634,6 +980,8 @@ BOOL CDTFM_GeneratorDlg::OnInitDialog()
 		m_slider_decrement.SetPos(100-ini.QueryValue("sldecrement"));
 		m_slider_total_volume.SetPos(ini.QueryValue("sltotalvolume"));
 
+		PutData;
+
 	}
 	else
 	{
@@ -654,11 +1002,15 @@ BOOL CDTFM_GeneratorDlg::OnInitDialog()
 		m_slider_decrement.SetPos(10);
 		m_slider_total_volume.SetPos(100);
 
+		m_garmonic_5="1.25";
+		m_garmonic_6="1.49";
+
+
 	}
 	
 
 	SetTimer(0,100,NULL);	//для обновления отрисовки клавиш
-	SetTimer(1,100,NULL);	//для обновления отрисовки клавиш
+	//SetTimer(1,100,NULL);	//для обновления отрисовки клавиш
 
 	//открываем MIDI-устройство
 	OnButtonMidiOpen();
@@ -685,6 +1037,7 @@ BOOL CDTFM_GeneratorDlg::OnInitDialog()
 	//ShowWindow(SW_NORMAL);
 	SetForegroundWindow();
 
+//	ShowGarmonics();
 
 	return FALSE;
 }
@@ -732,6 +1085,21 @@ void CDTFM_GeneratorDlg::OnPaint()
 
 		cCircleSlider_attack->OnPaint(dc);
 		cCircleSlider_modulation->OnPaint(dc);
+		cCircleSlider_detune->OnPaint(dc);
+		cCircleSlider_filterspeed->OnPaint(dc);
+		cCircleSlider_filterspeed2->OnPaint(dc);
+
+		cCircleSlider_6->OnPaint(dc);
+		cCircleSlider_7->OnPaint(dc);
+
+		cCircleSlider_sqr->OnPaint(dc);
+
+		cCircleSlider_echo_decay->OnPaint(dc);
+		cCircleSlider_echo_time->OnPaint(dc);
+		
+
+		ShowGarmonics();
+		ChangeGarmonicMouse(0, 0, TRUE);
 		
 		ReleaseDC(dc);
 
@@ -788,13 +1156,27 @@ BOOL CDTFM_GeneratorDlg::PreTranslateMessage(MSG* pMsg)
 {
 	UINT nChar=pMsg->wParam;
 
+	//клавиша нажата
+	//нужно учитывать, что после первого нажатия начинают поступать
+	//повторные сообщения от клавиатуры
+
+	/*CWnd * win=GetFocus();
+	if (win)
+	{
+		
+
+		CString str;
+		win->GetWindowText(str);
+		if (str.GetLength()!=0) return 0;
+	}*/
+
 	if (pMsg->message == WM_KEYDOWN)
 	{
 
 		if (nChar==VK_LEFT)
 		{
 
-			if (BaseKeyboard>0) BaseKeyboard--;
+			if (BaseKeyboard>11) BaseKeyboard--;
 		
 			change=true;
 
@@ -808,7 +1190,7 @@ BOOL CDTFM_GeneratorDlg::PreTranslateMessage(MSG* pMsg)
 			change=true;
 		}
 
-		for(int i=0; i<256; i++)
+		for(int i=0; i<128; i++)
 		{
 			if (Keysa[i].code==0) break;
 
@@ -817,7 +1199,18 @@ BOOL CDTFM_GeneratorDlg::PreTranslateMessage(MSG* pMsg)
 			{
 				int r=i+BaseKeyboard;
 
-				MidiKeyPress(r,127);
+				//Keys[r].key_unpress=FALSE;
+				//if (Keys[r].key_unpress==FALSE)
+				//{
+					if (Keys[r].Ampl==0 || Keys[r].key_unpress==TRUE)
+					{
+						MidiKeyPress(r,127);
+						Keys[r].key_unpress=FALSE;
+					}
+				//	Keys[r].key_unpress=TRUE;
+
+				//}
+
 			}
 
 		}
@@ -825,15 +1218,19 @@ BOOL CDTFM_GeneratorDlg::PreTranslateMessage(MSG* pMsg)
 		return 0;
 	}
 
-	if (pMsg->message == WM_KEYUP) // && hWaveOut)
+	//клавиша отпущена
+	if (pMsg->message == WM_KEYUP) 
 	{
-		for(int i=0; i<256; i++)
+		for(int i=0; i<128; i++)
 		{
 			if (Keysa[i].code==0) break;
 			if (Keysa[i].code==nChar)
 			{
 				int r=i+BaseKeyboard;
+
+				Keys[r].key_unpress=TRUE;
 				MidiKeyPress(r,0);
+				
 			}
 
 		}
@@ -842,18 +1239,38 @@ BOOL CDTFM_GeneratorDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 
-	//return CDialog::PreTranslateMessage(pMsg);
+	return CDialog::PreTranslateMessage(pMsg);
 
-	return 0;
+	//return 0;
 }
 
 double freq_1=0;
 int freq_1_count=0;
 
+const COPYBUFFER_SIZE=16384;
+short int CopyBuffer[COPYBUFFER_SIZE];
+
+const int MaxDelayBufferSize=2048*50;
+
+int DelayBufferSize=2048*5;
+int DelayBufferWritePosition=0;
+int DelayBufferReadPosition=0;
+int delay_buffer_full=1;
+
+short int DelayBuffer[MaxDelayBufferSize]={0};
 
 //самая важная функция - заполнение буфера звуковыми сгенерированными данными
+//size размер буфера в байтах, size/2 - число выборок, т.к. одна выборка имеет тип WORD (16bit)
 void FillBuffer(short *plbuf, int size, int samplerate)
 {
+	//if (DelayBuffer[0]==255)
+	//{
+	//	memset(DelayBuffer,0,DelayBufferSize);
+	//}
+
+	LARGE_INTEGER la1, la2;
+
+	QueryPerformanceCounter(&la1);
 
 	freq_1 = 0;
 	freq_1_count = 0;
@@ -861,16 +1278,18 @@ void FillBuffer(short *plbuf, int size, int samplerate)
 	int	delta =	0;
 
 	//на сколько частей делится круг в соответствии с частотой дискретизации
-	double	K =	2*PI/samplerate;
-
-	double	t =	_time_*K;
+	
 	
 	double	m =	0;
 
-	int OverloadCount=0;	//сколько раз был клиппинг (за пределы 32767...32767)
-	
-	for(int i=0; i<size/2; i++, _time_++)
+	int OverloadCount=0;	//сколько раз был клиппинг (за пределы -32768...32767)
+	double	K =	2*PI/samplerate;	
+	//static double	t =	0;//_time_*K;
+	//for(int i=0; i<size/2; i++, _time_++)
+	for(int i=0; i<size/2; i+=2, _time_++)
 	{
+
+
 		m=0;
 
 		//***^^^*** свяазано с модуляцией
@@ -883,14 +1302,33 @@ void FillBuffer(short *plbuf, int size, int samplerate)
 			{
 				//считаем частоту базовой гармоники для нажатой клавиши
 				double		freq	=	BASE_A * pow(scale, k-60+3 - 12);
+
+				if (g_mainwindow)
+				if (g_mainwindow->m_garmonic_mode)
+				{
+					freq = GarmonicBaseFreq * (k-12+1);
+				}
 				
 				//сколько чистых гармоник было в сигнале
-				int			flag_one=	1;
+				int			flag_one=	0;
 
 				//частота сигнала, если была только одна гармоника
 				double		freq_actual=0;
 				
 				static double phase;
+
+				K=2*PI/samplerate;
+
+				if (cCircleSlider_6 && cCircleSlider_7)
+				{
+					double fmodulation_f = cCircleSlider_6->GetValue(); // частота частотной модуляции
+					double fmodulation_d = cCircleSlider_7->GetValue(); // глубина частотной модуляции
+					//double fmodulation = 1 + (1 - pow(1.001, fmodulation_d)) * sin(Keys[k].t * pow(1.015, fmodulation_f));
+					double fmodulation = 1 + (1 - pow(1.001, fmodulation_d)) * sin(Keys[k].t * pow(1.015+0.01, fmodulation_f));
+
+					K *= fmodulation;
+				}
+
 				
 				phase=0;
 
@@ -927,14 +1365,13 @@ void FillBuffer(short *plbuf, int size, int samplerate)
 			
 		}
 		
-		t+=K;
-
+		//t+=K;
 
 		//static double CorrectAmplitude=1;
 		//m*=CorrectAmplitude;
 
 		//m - получаемое значение выборки
-		//диапазон от -32767 до +32767
+		//диапазон от -32768 до +32767
 
 		//если выходит за пределы
 		if (m>32767) 
@@ -945,10 +1382,10 @@ void FillBuffer(short *plbuf, int size, int samplerate)
 			//CorrectAmplitude-=0.01;
 		}
 
-		//если выходит за пределы
-		else if (m < -32767) 
+		//если выходит за пределы минимума
+		else if (m < -32768) 
 		{
-			m = -32767;		//установка максимального значения
+			m = -32768;		//установка минимального значения
 			Overload=-10;	//установка флага перегрузки
 			OverloadCount++;
 			//CorrectAmplitude-=0.01;
@@ -966,10 +1403,112 @@ void FillBuffer(short *plbuf, int size, int samplerate)
 		//short int z=(short int)(m*globalVolume);
 		short int z=(short int)(m);
 
-		plbuf[i]=z;
+		plbuf[i]  =z; //left channel
+		plbuf[i+1]=z; //right channel
+		
+		if (!delay_buffer_full)
+		{
+			DelayBuffer[i+DelayBufferWritePosition]=z;
+			DelayBuffer[i+1+DelayBufferWritePosition]=z;
+		
+
+			DelayBufferWritePosition+=2;
+			if (DelayBufferWritePosition>=DelayBufferSize)
+			{	
+				DelayBufferWritePosition=0;
+				delay_buffer_full=1;
+			}
+
+		}
 	}
 
 	if (OverloadCount==0) Overload++;
+
+	//запись в файл
+	//??????
+	if (g_mainwindow)
+	if (g_mainwindow->m_write_rawdata_pcm)
+	{
+		CFile file;
+		if (file.Open("rawdata.pcm", file.modeWrite))
+		{
+			file.SeekToEnd();
+			file.Write(plbuf,size);
+			file.Close();
+		}
+	}
+
+
+	//QueryPerformanceFrequency(&la3);
+
+
+	//FillBufferTickCount=la2.QuadPart;
+
+
+
+
+	if (delay_buffer_full)// && (DelayBufferWritePosition>size))
+	{
+		for(int j=0; j<size/2;j++)
+		{
+			int delay=0;//DelayBufferReadPosition;
+			int k=0;
+			
+			if (cCircleSlider_echo_time)
+			{
+			 
+				DelayBufferSize=int(MaxDelayBufferSize*(cCircleSlider_echo_time->GetValue())/100.0);
+				if (!DelayBufferSize) DelayBufferSize=1;
+
+				 if (DelayBufferSize>MaxDelayBufferSize)
+				 {
+					DelayBufferSize=MaxDelayBufferSize;
+				 }
+			 
+				k=DelayBufferReadPosition;
+			}
+
+			double km=0.3;
+			if (cCircleSlider_echo_decay)
+			{
+				km=cCircleSlider_echo_decay->GetValue()*0.01;
+			
+			}
+			
+			plbuf[j]+=int(DelayBuffer[k]*km);
+			//int delay2=50;
+			//if (k>=delay2)
+			//{
+			//	plbuf[j]+=DelayBuffer[k-delay2]*km*0.1;
+			//}
+
+			if (abs(plbuf[j]) > MaxSound) MaxSound=abs(int(plbuf[j]));	//округляем double в int. все рассчеты ведутся в double, а здесь округление
+			
+			DelayBuffer[k]=plbuf[j];
+
+			DelayBufferReadPosition++;
+
+			if (DelayBufferReadPosition>=DelayBufferSize)
+			{
+				DelayBufferReadPosition=0;
+			}
+
+			
+		}
+		
+	}
+
+	if (size<COPYBUFFER_SIZE)
+	{
+		memcpy(CopyBuffer, plbuf, size);
+	}
+
+	QueryPerformanceCounter(&la2);
+
+
+	FillBufferTickCount=DWORD((la2.QuadPart-la1.QuadPart)/1000.0);
+
+	//freq_1/=2;
 }
 
 extern int ASIO_buflen;
@@ -1008,6 +1547,35 @@ void CDTFM_GeneratorDlg::ExitDialog()
 	GetData;
 
 	//save data to .ini file
+	for(int i=0; i<garm_c;i++)
+	{
+
+			CString s;
+			s.Format("Garm%i",i);
+			
+			ini.SetDoubleValue(randarray[i],s.GetBuffer(0));
+			
+			s.Format("GarmAmpl%i",i);
+			ini.SetDoubleValue(randarray_amplitude[i],s.GetBuffer(0));//randarray_amplitude2[i];
+	}
+
+
+	ini.SetDoubleValue(atof(m_garmonic_5),"Garmonic5");
+	ini.SetDoubleValue(atof(m_garmonic_6),"Garmonic6");
+	ini.SetValue(m_check_saw,"CheckSaw");
+	ini.SetValue(BaseKeyboard,"BaseKeyboard");
+	ini.SetValue((int)cCircleSlider_filterspeed->GetValue(), "FilterSpeed");
+	ini.SetValue((int)cCircleSlider_attack->GetValue(), "Attack");
+	ini.SetValue((int)cCircleSlider_modulation->GetValue(), "Modulation");
+	ini.SetValue((int)cCircleSlider_detune->GetValue(), "Detune");
+	ini.SetValue((int)cCircleSlider_filterspeed2->GetValue(), "FilterSpeed2");
+	ini.SetValue((int)cCircleSlider_6->GetValue(), "ModulationParam1");
+	ini.SetValue((int)cCircleSlider_7->GetValue(), "ModulationParam2");
+	ini.SetValue((int)cCircleSlider_sqr->GetValue(), "SqrWaveToSin");
+	ini.SetValue((int)cCircleSlider_echo_time->GetValue(), "EchoTime");
+	ini.SetValue((int)cCircleSlider_echo_decay->GetValue(), "EchoDecay");
+	
+
 	ini.SetValue(atoi(m_midi_open_str.GetBuffer(0)),"MidiDevice");
 
 	ini.SetValue(100-m_sl1.GetPos(),"sl1");
@@ -1168,7 +1736,7 @@ int DrawPiannoRoll(CDC *dc, CEdit *level_control, int x, int y, int start)
 
 			dc->Rectangle(x1,y,x+L*i+L, y+H);
 
-			if ( RR==BaseKeyboard)
+			if ( RR==(BaseKeyboard+1))
 			{
 				dc->Ellipse(x1+3, y+H-1, x1+L-6, y+H-8);
 			}
@@ -1183,7 +1751,7 @@ int DrawPiannoRoll(CDC *dc, CEdit *level_control, int x, int y, int start)
 
 			int L2=int(L*0.6);
 			int H2=int(H*0.6);
-			if (scale != pow(2,1/12.0)) 
+			if ((scale != pow(2,1/12.0)) || g_mainwindow->m_garmonic_mode) 
 			{
 				H2=H;
 			}
@@ -1227,18 +1795,26 @@ int DrawPiannoRoll(CDC *dc, CEdit *level_control, int x, int y, int start)
 void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent) 
 {
 
-	if (nIDEvent==100){
+	if (nIDEvent==100)
+	{
 			
 		if(demo[counter] > -1){
 			
-			Keys[demo[counter]].fRez1 = rezMax;
-			Keys[demo[counter]].fRez2 = rezMax;
-			Keys[demo[counter]].fRez3 = rezMax;
-		
-			Keys[demo[counter]].press=TRUE;
-			Keys[demo[counter]].Ampl=atoi(g_amplitude_global);
-			Keys[demo[counter]].decrement=0.3;//звук будет звучать постоянно
-			Keys[demo[counter]].t = 0;
+			int k=demo[counter];
+			if (k!=-1)
+			{
+				ZeroMemory(&Keys[k],sizeof(KEY));
+
+				Keys[k].ResetFilter();
+
+			
+			
+				//????????????
+				Keys[k].press=TRUE;
+				Keys[k].Ampl=atoi(g_amplitude_global);
+				Keys[k].decrement=AMPLITUDE_DECREMENT;
+				Keys[k].t = 0;
+			}
 		
 		}
 		
@@ -1254,8 +1830,30 @@ void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent)
 		return;
 		
 	}
-
+	
 	GetData;
+
+
+	GarmonicBaseFreq=atoi(m_garmonic_base_freq.GetBuffer(0));
+	
+	CString s2;
+	s2.Format("%f", global_fRez2);
+
+
+	m_global_rez2.SetWindowText(s2);
+
+	s2.Format("%f", global_ss2);
+	m_global_ss2.SetWindowText(s2);
+
+	s2.Format("%f", global_filter2);
+	m_global_filter2.SetWindowText(s2);
+	
+
+
+	char buf1[32];
+	//????
+	ltoa(FillBufferTickCount,buf1,10);
+	m_tick_count_fill_buffer.SetWindowText(buf1);
 
 	if (nIDEvent==1)
 	{
@@ -1281,6 +1879,9 @@ void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent)
 		return;
 	}
 
+	//???????????
+	rezMin = strtod(m_rez_min.GetBuffer(0),NULL);
+	rezMax = strtod(m_rez_max.GetBuffer(0),NULL);;
 
 
 	no_sustain=m_no_sustain;
@@ -1312,13 +1913,9 @@ void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent)
 
 	g_step_modulation=g_ModulationWheel * Volume/127.0/ASIO_buflen;
 
-
-	
 	char str[16];
 	itoa(g_modulation_wheel_2,str,10);
-	//itoa(g_ModulationWheel,str,10);
-
-	m_edit_modulation_wheel=	str;
+	m_edit_modulation_wheel=str;
 
 	if (NeedUpdateMidiEvent)
 	{
@@ -1354,7 +1951,7 @@ void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent)
 
 	m_slider_decrement_double=AMPLITUDE_DECREMENT;
 
-	m_edit_freq=freq_1*2;
+	m_edit_freq=freq_1;
 	if (freq_1 != 0) m_wave_len = 330/m_edit_freq;
 	else	m_wave_len = 0;
 
@@ -1386,10 +1983,37 @@ void CDTFM_GeneratorDlg::OnTimer(UINT nIDEvent)
 
 	}
 
-	CDialog::OnTimer(nIDEvent);
-
 	MaxSound=0;
 	//Overload=0;
+	CDC *dc=GetDC();
+
+	int y=400;
+
+	int HEI=50;
+	int LEN=200;
+	dc->Rectangle(0,y-HEI,LEN,y+HEI);
+
+	int j=0;
+	for(int i=0; i<0;i++)
+	{
+		if (abs(CopyBuffer[i])<5) { j=i; break;}
+	}
+
+	int z=0;
+	for(; i<j+LEN;i++)
+	{
+
+		//???????
+		short val=short(CopyBuffer[i]/32768.0*HEI);
+		if (val>=HEI) val=HEI-1;
+		if (val<=-HEI) val=-HEI+1;
+		dc->LineTo(z++, y+val);
+	}
+
+	ReleaseDC(dc);
+
+
+	CDialog::OnTimer(nIDEvent);
 
 }
 
@@ -1509,11 +2133,8 @@ void CALLBACK MidiInProc(
 
 			if (z==11 && nChar==9)
 			{
-				//????
 				cCircleSlider_attack->SetValue(Volume);
 				cCircleSlider_attack->redraw=1;
-				
-
 			}
 
 			if (NeedUpdateModulation)
@@ -1567,7 +2188,6 @@ void CALLBACK MidiInProc(
 //открытие миди-устройства
 void CDTFM_GeneratorDlg::OnButtonMidiOpen() 
 {
-
 	
 	GetData;
 
@@ -1625,6 +2245,7 @@ void CDTFM_GeneratorDlg::OnButtonMidiOpen()
 	SetFocus();
 
 	PutData;
+	
 }
 
 void CDTFM_GeneratorDlg::OnButtonWrite() 
@@ -1646,7 +2267,7 @@ void CDTFM_GeneratorDlg::OnButtonWrite()
 	}
 	else
 	{
-		//MessageBox("File busy");
+		//MessageBox("File is busy");
 	}
 	
 }
@@ -1704,19 +2325,37 @@ void CALLBACK TimerProc_PlayMidi(
 	if ( delta <= delta2)
 	{
 		BYTE nChar=md[j].key;
-		if (md[j].status>0)
+		if (nChar>=32 && nChar<128)
 		{
+			if (md[j].status>0)
+			{
 
-			Keys[nChar].press=1;
-			Keys[nChar].Ampl=md[j].status*CurrentAmplitude/127;
-			Keys[nChar].decrement=0;
+				Keys[nChar].press=1;
+				
+				if (g_mainwindow->m_use_velocity == TRUE)
+				{
+					//???????
+					Keys[nChar].Ampl=atoi(g_amplitude_global);
+				}
+				else
+				{
+					Keys[nChar].Ampl=md[j].status*CurrentAmplitude/127;
+				}
+				
+				Keys[nChar].ResetFilter();
+				Keys[nChar].decrement=0;
+				Keys[nChar].midi_key_press=1;
+			}
+			else
+			{
+				Keys[nChar].decrement=AMPLITUDE_DECREMENT;
+			}
+
+
+			
 		}
-		else
-		{
-			Keys[nChar].decrement=AMPLITUDE_DECREMENT;
-		}
+
 		PlayWritenPosition++;
-
 	}
 	
 }
@@ -1772,7 +2411,7 @@ void CDTFM_GeneratorDlg::OnButtonPlayWriten()
 
 void CDTFM_GeneratorDlg::OnButtonReset() 
 {
-	for(int i=0; i<256; i++)
+	for(int i=0; i<128; i++)
 	{
 		Keys[i].Ampl=0;
 		Keys[i].press=0;
@@ -1810,6 +2449,8 @@ void MidiKeyPress2(BYTE key, BYTE value)
 {
 	if (value!=0)
 	{
+		//если клавиша еще не отпущена возврат
+		if (Keys[key].key_unpress==FALSE) return;
 		//if (Keys[key].press==true) return;
 
 		//if (Keys[key].press==1) return;
@@ -1855,43 +2496,11 @@ void MidiKeyPress2(BYTE key, BYTE value)
 	else 
 	{
 		Keys[key].decrement=AMPLITUDE_DECREMENT;
+		Keys[key].key_unpress=TRUE;
 	}
 
 
 }
-
-
-void MidiKeyPress3(BYTE key, BYTE value)
-{
-	if (value!=0)
-	{
-		//if (Keys[key].press==true) return;
-
-		//if (Keys[key].press==1) return;
-
-
-		Keys[key].press=true;
-
-		Keys[key].Ampl=atoi(g_amplitude_global)*value/127.0;
-
-		//????
-		Keys[key].A=Keys[key].Ampl;
-		Keys[key].A_add=ADSR_Attack;//0.6;
-
-		Keys[key].Ampl=0;
-
-		Keys[key].decrement=0;
-		Keys[key].t=0;	//время функции sin
-		
-	}
-	else 
-	{
-		Keys[key].decrement=AMPLITUDE_DECREMENT;
-	}
-
-
-}
-
 
 
 void CDTFM_GeneratorDlg::MidiKeyPress(BYTE key, BYTE value)
@@ -1966,8 +2575,6 @@ int gMouseMove=FALSE;
 //если курсор попадает в зону пианоролла
 void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point) 
 {
-	
-	
 	//Overload=false;
 	GetData;
 
@@ -1983,11 +2590,12 @@ void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point)
 
 	if (flag_out_pianoroll)
 	{
-		for(int i=0; i<256; i++)
+		for(int i=0; i<128; i++)
 		{
 			if (!Keys[i].midi_key_press)
 			{
 				Keys[i].decrement=AMPLITUDE_DECREMENT;
+	//			Keys[i].pianoamp=1.0; // не помогло восстанавливать амплитуду пианино
 			}
 			
 		}
@@ -1995,7 +2603,7 @@ void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 
 
-
+	//???????
 	int key=(point.x-KEY_X)/KEY_L;
 	int octave=key/7;
 	key=key%7;
@@ -2012,7 +2620,7 @@ void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	
 	key_real+=(octave+1)*12;
 
-	if (key_real>=256) return;
+	if (key_real>=128) return;
 	
 	if (gMouseMove && Keys[key_real].press==TRUE) 
 	{
@@ -2021,17 +2629,17 @@ void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 
 
-	Keys[key_real].fRez1 = rezMax;
-	Keys[key_real].fRez2 = rezMax;
-	Keys[key_real].fRez3 = rezMax;
+	Keys[key_real].ResetFilter();
 	Keys[key_real].press=TRUE;
 	Keys[key_real].Ampl=atoi(g_amplitude_global);
 	Keys[key_real].decrement=0;//звук будет звучать постоянно
+	Keys[key_real].t=0;
 	
 	//если в момент нажатия клавиши нажата CTRL 
 	if ((nFlags & MK_CONTROL) && m_ctrl_key_use) 
 	{
 		Keys[key_real].decrement=0;//звук будет звучать постоянно
+		Keys[key_real].midi_key_press=1; //редактирование слайдеров не заглушит звук
 	}
 	else 
 	{
@@ -2042,7 +2650,7 @@ void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point)
 		else
 		{
 			Keys[key_real].decrement=0;
-			for(int i=0; i<256;i++)
+			for(int i=0; i<128;i++)
 			{
 				if (i==key_real) continue;
 				//Keys[i].press=FALSE;
@@ -2050,9 +2658,7 @@ void CDTFM_GeneratorDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 		}
 	}
-	
-	Keys[key_real].t=0;
-	
+
 
 }
 
@@ -2078,6 +2684,80 @@ void CDTFM_GeneratorDlg::OnMouseMove(UINT nFlags, CPoint point)
 
 	cCircleSlider_attack->OnMouseMove(nFlags, point);
 	cCircleSlider_modulation->OnMouseMove(nFlags, point);
+	cCircleSlider_detune->OnMouseMove(nFlags, point);
+	cCircleSlider_filterspeed->OnMouseMove(nFlags, point);
+	cCircleSlider_filterspeed2->OnMouseMove(nFlags, point);
+
+	cCircleSlider_6->OnMouseMove(nFlags, point);
+	cCircleSlider_7->OnMouseMove(nFlags, point);
+	cCircleSlider_sqr->OnMouseMove(nFlags, point);
+
+	cCircleSlider_echo_time->OnMouseMove(nFlags, point);
+	cCircleSlider_echo_decay->OnMouseMove(nFlags, point);
+
+	if (cCircleSlider_echo_decay->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_echo_decay->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+
+	if (cCircleSlider_echo_time->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_echo_time->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+
+	if (cCircleSlider_sqr->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_sqr->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+
+	if (cCircleSlider_6->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_6->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+	if (cCircleSlider_7->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_7->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+
+
+	if (cCircleSlider_filterspeed2->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_filterspeed2->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+
+	if (cCircleSlider_filterspeed->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_filterspeed->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
+
+	if (cCircleSlider_detune->pSlider->flagPaint == true)
+	{
+		CDC *dc=GetDC();
+		cCircleSlider_detune->OnPaint(dc);
+		ReleaseDC(dc);
+	}
+
 
 	if (cCircleSlider_modulation->pSlider->flagPaint == true)
 	{
@@ -2092,7 +2772,7 @@ void CDTFM_GeneratorDlg::OnMouseMove(UINT nFlags, CPoint point)
 		cCircleSlider_attack->OnPaint(dc);
 		ReleaseDC(dc);
 
-		if ( (oldx!=cCircleSlider_attack->xSliderStart) || (oldy!=cCircleSlider_attack->ySliderStart))
+		/*if ( (oldx!=cCircleSlider_attack->xSliderStart) || (oldy!=cCircleSlider_attack->ySliderStart))
 		{
 			
 			//Invalidate(false);
@@ -2100,7 +2780,7 @@ void CDTFM_GeneratorDlg::OnMouseMove(UINT nFlags, CPoint point)
 			RECT rt={x,y,x+d,y+d};
 			InvalidateRect(&rt,true);
 			//Invalidate(true);
-		}
+		}*/
 	}
 
 
@@ -2111,6 +2791,8 @@ void CDTFM_GeneratorDlg::OnMouseMove(UINT nFlags, CPoint point)
 		gMouseMove=TRUE;
 		OnLButtonDown(nFlags, point);
 	}
+
+	ChangeGarmonicMouse(nFlags, point, FALSE);
 
 	CDialog::OnMouseMove(nFlags, point);
 }
@@ -2182,7 +2864,7 @@ void CDTFM_GeneratorDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	
 	key_real+=(octave+1)*12;
 
-	if (key_real>=0 && key_real<=256)// && Keys[key_real].press==FALSE) 
+	if (key_real>=0 && key_real<=128)// && Keys[key_real].press==FALSE) 
 	{
 		if (gMouseMove && Keys[key_real].press==TRUE) 
 		{
@@ -2219,7 +2901,7 @@ void CDTFM_GeneratorDlg::OnLButtonUp(UINT nFlags, CPoint point)
 void CDTFM_GeneratorDlg::OnRButtonUp(UINT nFlags, CPoint point) 
 {
 	// TODO: Add your message handler code here and/or call default
-	Invalidate(TRUE);
+	//Invalidate(TRUE);
 	CDialog::OnRButtonUp(nFlags, point);
 }
 
@@ -2245,8 +2927,6 @@ void CDTFM_GeneratorDlg::OnSettingsSetasiodevice()
 		return;
 	}
 
-
-	
 }
 
 void CDTFM_GeneratorDlg::OnFileExit() 
@@ -2254,4 +2934,237 @@ void CDTFM_GeneratorDlg::OnFileExit()
 	// TODO: Add your command handler code here
 	ExitDialog();	
 	
+}
+
+void CDTFM_GeneratorDlg::OnButtonDemo() 
+{
+	SetTimer(100,100,0);
+	
+}
+
+void CDTFM_GeneratorDlg::OnKeyboardKeysMenu() 
+{
+	char msg[]="Use keys for play: q,w,e,r,t,y,u,i,o,p and dies(#) keys 2,3,5,6,7,9,0\r\n"
+	"Use cursor key <LEFT> and <RIGHT> to change base of keyboard";	
+	;
+
+	AfxMessageBox(msg,MB_OK,0);
+}
+
+
+void swap(double& a, double& b)
+{
+	double tmp=a;
+	a=b;
+	b=tmp;
+}
+
+void CDTFM_GeneratorDlg::OnButtonRndGarmonic() 
+{
+
+	CString res,a;
+
+	for(int z=0; z<garm_c; z++)
+	{
+		//randarray[z]=rand()%40+(rand()%100)/100.0;
+		randarray[z]=0;
+		randarray_amplitude[z]=0;
+		if ( (rand()%10) > 5)
+		{
+
+			randarray[z]=1;//rand()%50;
+			randarray_amplitude[z]=0.1+(rand()%10)/10.0;
+			//randarray_amplitude[z]=0.5;//+(rand()%10)/10.0;
+		}
+
+	}
+
+	randarray[1]=1;
+	randarray_amplitude[1]=0.5;
+
+
+	ShowGarmonics();
+
+	ChangeGarmonicMouse(0,0, TRUE);
+	
+}
+
+double scalex_wave_grapchic=1;
+
+
+int CDTFM_GeneratorDlg::ChangeGarmonicMouse(UINT nFlags, CPoint point, bool ShowGraphic)
+{
+
+	int x1=point.x;
+	int y1=point.y;
+
+	int x=500,y=350;
+
+	int HEI=50, LEN=8;
+
+	CPen pen;
+	pen.CreatePen(0,1,RGB(0,255,0));
+
+	CPen pen_null;
+
+	pen_null.CreatePen(0,0,RGB(255,255,255));
+
+	
+	CPen pen_block;
+	pen_block.CreatePen(0,1,RGB(200,200,200));
+
+	CPen pen_black;
+	pen_black.CreatePen(0,1,RGB(0,0,0));
+
+	
+	CDC *dc=GetDC();
+
+	
+	for(int i=0; i<garm_c; i++)
+	{
+
+		if (
+			(x1>=(x+i*LEN) && x1<=(x+i*LEN+LEN)) &&
+		 (y1>=y && y1<=(y+HEI))
+		 )
+		{
+
+			if (nFlags&MK_LBUTTON)
+			{
+				randarray[i]=1;
+
+				randarray_amplitude[i]=(HEI-(y1-y))*1.0/HEI;
+
+				if (randarray_amplitude[i]<0.15) 
+				{
+					randarray[i]=0;
+					randarray_amplitude[i]=0;
+				}
+
+				ShowGraphic=1;
+
+			
+
+			int dt=0;
+			double ampl=randarray_amplitude[i];
+			//dc->Rectangle(int(x+LEN*i+dt),y+HEI-1, int(x+ LEN*i+LEN+dt), y + HEI-int(HEI *ampl ) + 1 );
+			dc->SelectObject(pen_null);
+			dc->Rectangle(int(x+LEN*i+dt),y+1, int(x+ LEN*i+LEN+dt), y + HEI-1);
+			
+			dc->SelectObject(pen_black);
+			dc->Rectangle(int(x+LEN*i+dt),y+HEI-1, int(x+ LEN*i+LEN+dt), y + HEI-int(HEI *ampl ) + 1 );
+			}
+		}
+
+	}
+
+	if (ShowGraphic)
+	{
+	int freq=440;
+
+	dc->Rectangle(x,y+HEI, x+ LEN*garm_c, y + HEI*2);	
+	dc->MoveTo(x,y+HEI+HEI/2);
+	dc->SelectObject(pen_black);
+	double t=0;
+	for(int x2=0; x2<LEN*garm_c;x2++)
+	{
+		double sum=0;
+		for(int i=1; i<garm_c; i++)
+		{
+			if (randarray[i])
+			{
+				sum+=randarray_amplitude[i]*sin(freq*i*t);
+			}
+		}
+
+		int y2=int(HEI*sum*0.1);
+		if (y2>HEI/2) y2=HEI/2;
+		if (y2<-HEI/2) y2=-HEI/2;
+		dc->LineTo(x+x2, y + HEI + HEI/2+ y2);
+		t+=0.00005*scalex_wave_grapchic;
+
+	}
+
+	ShowGarmonicStatus(0);
+	}
+
+	ReleaseDC(dc);
+	
+
+	return 0;
+}
+
+void CDTFM_GeneratorDlg::ShowGarmonics()
+{
+	CDC *dc=GetDC();
+
+	int x=500,y=350;
+
+	int HEI=50, LEN=8;
+
+
+	dc->Rectangle(x,y, x+ LEN*garm_c, y + int(HEI *1 ) );
+
+	for(int i=0; i<garm_c; i++)
+	{
+		if (randarray[i] == 0) continue;
+
+		double ampl=randarray_amplitude[i];
+
+
+		//if (ampl==0) ampl=1;
+
+		double dt=randarray[i]-int(randarray[i]);
+		dt*=LEN;
+
+		if (ampl!=0)
+		dc->Rectangle(int(x+LEN*i+dt),y+HEI-1, int(x+ LEN*i+LEN+dt), y + HEI-int(HEI *ampl ) + 1 );
+	}
+
+	ReleaseDC(dc);
+	ShowGarmonicStatus(0);
+}
+
+void CDTFM_GeneratorDlg::ShowGarmonicStatus(int param)
+{
+
+	CString a,res;
+	for(int z=0; z<garm_c; z++)
+	{
+		if (randarray[z] == 0 ) continue;
+
+		a.Format("%i",z);
+
+		res+=a;
+
+		a.Format("(%i)",int(randarray_amplitude[z]*100));
+
+		res+=a;
+		res+=" ";
+	}
+		m_status_text.SetWindowText("Garmonic: "+res);
+
+}
+
+
+void CDTFM_GeneratorDlg::OnButtonPlusXscaleWavegraphic() 
+{
+	scalex_wave_grapchic*=2;	
+	ChangeGarmonicMouse(0,0,TRUE);
+	
+}
+
+void CDTFM_GeneratorDlg::OnButtonMinusXscaleWavegraphic() 
+{
+	scalex_wave_grapchic*=0.5;
+	ChangeGarmonicMouse(0,0,TRUE);
+}
+
+void CDTFM_GeneratorDlg::OnCheckGarmonicMode() 
+{
+
+	GetData;
+	Invalidate(FALSE);
+	UpdateWindow();
+	m_status_text.SetFocus();
 }
