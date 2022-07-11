@@ -1,4 +1,5 @@
-<pre id=pre>
+<pre id=pre><br />
+<div id=run>run:</div><br />
 let out = [];
 function getCommonElements(array1, array2) {
    for(i = 0; i < 100; i++){
@@ -7,6 +8,6 @@ function getCommonElements(array1, array2) {
    console.log(out);
    return out;
 }
-document.write(getCommonElements([24, 12, 27, 3], [12, 8, 3, 36, 27]));
+run.innerText = getCommonElements([24, 12, 27, 3], [12, 8, 3, 36, 27]);
 </pre>
 <script>eval(pre.innerText)</script>
