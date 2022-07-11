@@ -1,3 +1,4 @@
+<pre id=pre></pre>
 <script>
 let out = [];
 function getCommonElements(array1, array2) {
@@ -8,5 +9,5 @@ function getCommonElements(array1, array2) {
    return out;
 }
 document.write(getCommonElements([24, 12, 27, 3], [12, 8, 3, 36, 27]));
-document.write('<pre stylee="background: gold">'+document.querySelector('script').innerText+'</pre>');
 </script>
+pre.innerText = 'document.querySelector('script').innerText;
