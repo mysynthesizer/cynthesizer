@@ -1,0 +1,56 @@
+<center>
+<button id="startButton"> запись </button>
+<button id="stopButton"> стоп </button><br /><br />
+<video id="preview" width="320" height="240" style="border-style: solid" autoplay muted></video>
+<video id="recording" width="320" height="240" controls hidden></video><br /><br />
+<a id="downloadButton" hidden>скачать</a>
+</center>
+<script>
+function startRecording(stream, lengthInMS) {
+	let recorder = new MediaRecorder(stream);
+	let data = [];
+	recorder.ondataavailable = event => data.push(event.data);
+	recorder.start();
+	let stopped = new Promise((resolve, reject) => {
+		recorder.onstop = resolve;
+		recorder.onerror = event => reject(event.name);
+	});
+	return Promise.all([stopped, new Promise(resolve => setTimeout(resolve, lengthInMS)).then(() => recorder.state == "съёмка" && recorder.stop())]).then(() => data);
+}
+startButton.addEventListener("click", function() {
+	navigator.mediaDevices.getUserMedia({
+		video: true,
+		audio: true
+	}).then(stream => {
+		preview.srcObject = stream;
+		preview.captureStream = preview.captureStream;
+		return new Promise(resolve => preview.onplaying = resolve);
+	}).then(() => startRecording(preview.captureStream(), 5000)).then (recordedChunks => {
+		recording.hidden = false;
+		preview.hidden = true;
+		recording.src = downloadButton.href = URL.createObjectURL(new Blob(recordedChunks, { type: "video/webm" }));
+		recording.play();
+		downloadButton.hidden = false;
+		downloadButton.download = "RecordedVideo.webm";
+	});
+}, false);https://www.mediafire.com/file/eojara7axn3kdgz/vlc-record-2022-06-17-01h10m14s-Pok%25C3%25A9mon_Journeys__The_Series_S01E37_That_New_Old_Gang_of_Mine%2521.mkv-.mp4/file
+stopButton.addEventListener("click", function() {preview.srcObject.getTracks().forEach(track => track.stop())}, false);
+recording.onended = () => recording.currentTime = 0;
+https://download2278.mediafire.com/5vt6nd8x8sag/eojara7axn3kdgz/vlc-record-2022-06-17-01h10m14s-Pok%C3%A9mon+Journeys_+The+Series_S01E37_That+New+Old+Gang+of+Mine%21.mkv-.mp4
+console.log(new URL(location.href));
+
+var hex = "354d413043b4b440e1510b00";
+var not_hex = Buffer.from(hex, 'hex').toString('utf8');
+console.log(not_hex);
+
+
+
+</script>
+
+
+
+
+
+
+
+
